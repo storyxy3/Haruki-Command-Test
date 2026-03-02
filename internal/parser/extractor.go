@@ -2,10 +2,58 @@
 
 import (
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
+
+type dictRule struct {
+	re  *regexp.Regexp
+	val string
+}
+
+func buildRules(m map[string]string) []dictRule {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return len(keys[i]) > len(keys[j])
+	})
+
+	var rules []dictRule
+	for _, k := range keys {
+		isAscii := true
+		for _, char := range k {
+			if char > 127 {
+				isAscii = false
+				break
+			}
+		}
+		pattern := "(?i)"
+		if isAscii {
+			pattern += `\b` + regexp.QuoteMeta(k) + `\b`
+		} else {
+			pattern += regexp.QuoteMeta(k)
+		}
+		rules = append(rules, dictRule{
+			re:  regexp.MustCompile(pattern),
+			val: m[k],
+		})
+	}
+	return rules
+}
+
+func extractByRules(text string, rules []dictRule) ExtractResult[string] {
+	for _, rule := range rules {
+		if rule.re.MatchString(text) {
+			remaining := rule.re.ReplaceAllString(text, "")
+			return ExtractResult[string]{Value: rule.val, Remaining: strings.TrimSpace(remaining), Found: true}
+		}
+	}
+	return ExtractResult[string]{Value: "", Remaining: text, Found: false}
+}
 
 // Extractor 通用特征提取器
 type Extractor struct {
@@ -76,16 +124,10 @@ var rarityMap = map[string]string{
 	"生日": "rarity_birthday", "birthday": "rarity_birthday",
 }
 
+var rarityRules = buildRules(rarityMap)
+
 func (e *Extractor) ExtractRarity(text string) ExtractResult[string] {
-	textLower := strings.ToLower(text)
-	for k, v := range rarityMap {
-		if strings.Contains(textLower, k) {
-			re := regexp.MustCompile("(?i)" + regexp.QuoteMeta(k))
-			remaining := re.ReplaceAllString(text, "")
-			return ExtractResult[string]{Value: v, Remaining: strings.TrimSpace(remaining), Found: true}
-		}
-	}
-	return ExtractResult[string]{Value: "", Remaining: text, Found: false}
+	return extractByRules(text, rarityRules)
 }
 
 func (e *Extractor) ExtractRegionPrefix(text string) ExtractResult[string] {
@@ -132,16 +174,10 @@ var attrMap = map[string]string{
 	"mysterious": "mysterious", "神秘": "mysterious", "紫": "mysterious",
 }
 
+var attrRules = buildRules(attrMap)
+
 func (e *Extractor) ExtractAttribute(text string) ExtractResult[string] {
-	textLower := strings.ToLower(text)
-	for k, v := range attrMap {
-		if strings.Contains(textLower, k) {
-			re := regexp.MustCompile("(?i)" + regexp.QuoteMeta(k))
-			remaining := re.ReplaceAllString(text, "")
-			return ExtractResult[string]{Value: v, Remaining: strings.TrimSpace(remaining), Found: true}
-		}
-	}
-	return ExtractResult[string]{Value: "", Remaining: text, Found: false}
+	return extractByRules(text, attrRules)
 }
 
 // -----------------------------------------------------------------------------
@@ -154,16 +190,10 @@ var skillMap = map[string]string{
 	"奶": "life_recovery", "回复": "life_recovery",
 }
 
+var skillRules = buildRules(skillMap)
+
 func (e *Extractor) ExtractSkill(text string) ExtractResult[string] {
-	textLower := strings.ToLower(text)
-	for k, v := range skillMap {
-		if strings.Contains(textLower, k) {
-			re := regexp.MustCompile("(?i)" + regexp.QuoteMeta(k))
-			remaining := re.ReplaceAllString(text, "")
-			return ExtractResult[string]{Value: v, Remaining: strings.TrimSpace(remaining), Found: true}
-		}
-	}
-	return ExtractResult[string]{Value: "", Remaining: text, Found: false}
+	return extractByRules(text, skillRules)
 }
 
 // -----------------------------------------------------------------------------
@@ -185,16 +215,10 @@ var supplyMap = map[string]string{
 	"生日": "birthday",
 }
 
+var supplyRules = buildRules(supplyMap)
+
 func (e *Extractor) ExtractSupply(text string) ExtractResult[string] {
-	textLower := strings.ToLower(text)
-	for k, v := range supplyMap {
-		if strings.Contains(textLower, k) {
-			re := regexp.MustCompile("(?i)" + regexp.QuoteMeta(k))
-			remaining := re.ReplaceAllString(text, "")
-			return ExtractResult[string]{Value: v, Remaining: strings.TrimSpace(remaining), Found: true}
-		}
-	}
-	return ExtractResult[string]{Value: "", Remaining: text, Found: false}
+	return extractByRules(text, supplyRules)
 }
 
 // -----------------------------------------------------------------------------

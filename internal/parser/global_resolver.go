@@ -178,6 +178,9 @@ func (r *GlobalCommandResolver) Resolve(input string) (*ResolvedCommand, error) 
 		if matches := rt.pattern.FindStringSubmatch(input); len(matches) > 1 {
 			res.Module = rt.module
 			res.Mode = rt.mode
+			if res.Module == ModuleHelp {
+				res.IsHelp = true
+			}
 			if len(matches) > 2 {
 				res.Query = strings.TrimSpace(matches[2])
 			}
