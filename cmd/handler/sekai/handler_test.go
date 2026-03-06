@@ -8,11 +8,10 @@ import (
 )
 
 func TestRegisterCommandHandler(t *testing.T) {
-
+	
 	RegisterSekaiCommandHandler()
-	log.Println(handler.GetAllCommandHandlers())
-	v := handler.Dispatch(context.Background(), handler.Event{
-		Message: "/cn查谱 虾",
+	v, e := handler.Dispatch(context.Background(), handler.Event{
+		Message: "/cn查谱面 虾",
 	})
-	log.Println(v)
+	log.Println(v, e)
 }

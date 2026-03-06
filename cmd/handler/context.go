@@ -34,42 +34,42 @@ type Context interface {
 
 type HandlerContext struct {
 	context.Context        // 继承go的上下文
-	triggerCmd      string // 触发的命令
-	argText         string // 命令参数\
-	messageType     MessageType
-	message         string // 原始文本消息
-	event           Event  // 原始事件对象
-	messageId       string // 消息ID
-	userId          string // 发送者ID
-	senderName      string // 发送者名称
-	groupId         string // 群号
+	TriggerCmd      string // 触发的命令
+	ArgText         string // 命令参数\
+	MessageType     MessageType
+	Message         string // 原始文本消息
+	Event           Event  // 原始事件对象
+	MessageId       string // 消息ID
+	UserId          string // 发送者ID
+	SenderName      string // 发送者名称
+	GroupId         string // 群号
 }
 
 func (h *HandlerContext) GetTriggerCmd() string {
-	return h.triggerCmd
+	return h.TriggerCmd
 }
 func (h *HandlerContext) GetArgs() string {
-	return h.argText
+	return h.ArgText
 }
 func (h *HandlerContext) GetMessageType() MessageType {
-	return h.messageType
+	return h.MessageType
 }
 func (h *HandlerContext) GetMessage() string {
-	return h.message
+	return h.Message
 }
 func (h *HandlerContext) GetEvent() Event {
-	return h.event
+	return h.Event
 }
 func (h *HandlerContext) GetMessageId() string {
-	return h.messageId
+	return h.MessageId
 }
 
 func (h *HandlerContext) GetUserId() string {
-	return h.userId
+	return h.UserId
 }
 func (h *HandlerContext) GetSenderName() string {
-	return h.senderName
+	return h.SenderName
 }
 func (h *HandlerContext) GetGroupId() string {
-	return h.groupId
+	return h.GroupId
 }
