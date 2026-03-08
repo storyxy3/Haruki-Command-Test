@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-var multiEventCmds = []string{"/pjsk events", "/pjsk_events", "/events", "/活动列表", "/活动一览"}
-var singleEventCmds = []string{"/pjsk event", "/pjsk_event", "/event", "/活动", "/查活动"}
-
 func (sekaiHandlers) EventHandle() SekaiCommandHandler {
 	// commands := make([]string, 0, len(singleEventCmds)+len(multiEventCmds))
 	// commands = append(commands, singleEventCmds...)

@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-var musicListCmds = []string{"/pjsk song list", "/pjsk music list", "/歌曲列表", "/歌曲一览"}
-var musicConstantCmds = []string{"/pjsk music constant", "/难度排行", "/定数表", "/歌曲定数"}
-
 func (sekaiHandlers) MusicDetailHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
