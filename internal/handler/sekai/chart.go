@@ -4,6 +4,7 @@ import (
 	"Haruki-Command-Parser/internal/handler"
 	"Haruki-Command-Parser/internal/parser"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -38,14 +39,17 @@ func (sekaiHandlers) ChartHandle() SekaiCommandHandler {
 				refresh = true
 				query = strings.Replace(query, "refresh", "", 1)
 			}
-			// TODO: 临时的，必须改掉
-			musicParser := parser.NewMusicParser(map[string]int{"虾": 76})
-			musicInfo, err := musicParser.Parse(query)
-			if err != nil {
-				return nil, err
+			// TODO: 需要musicparser}
+			// musicParser := parser.NewMusicParser(map[string]int{"虾": 76})
+			// musicInfo, err := musicParser.Parse(query)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			refreshStr := "false"
+			if refresh {
+				refreshStr = "true"
 			}
-
-			return generate_music_chart(ctx, musicInfo, refresh)
+			return nil, fmt.Errorf("谱面预览暂未实现，queyr: %s, refresh: %s", query, refreshStr)
 		},
 	}
 }
