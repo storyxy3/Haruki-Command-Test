@@ -21,7 +21,7 @@ func generate_music_chart(ctx SekaiHandlerContext, musicInfo *parser.MusicQueryI
 
 func (sekaiHandlers) ChartHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		BaseCommandHandler: handler.BaseCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
 				"/pjsk chart",
 				"/谱面查询", "/铺面查询", "/谱面预览", "/铺面预览", "/谱面", "/铺面", "/查谱面", "/查铺面", "/查谱",

@@ -19,7 +19,7 @@ type SekaiHandlerContext struct {
 }
 
 type SekaiCommandHandler struct {
-	handler.BaseCommandHandler
+	handler.CommandHandlerBase
 	Regions    []*sekairegion.SekaiRegion
 	PrefixArgs []string
 	handleFunc func(SekaiHandlerContext) (interface{}, error)
