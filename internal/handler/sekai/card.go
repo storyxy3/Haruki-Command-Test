@@ -2,12 +2,52 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	sekairegion "Haruki-Command-Parser/internal/sekai_region"
 	"errors"
 	"fmt"
 	"strings"
 )
 
+func (sekaiHandlers) CardDetailHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/card-detail", "/卡面", "/详情", "/查卡",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleCard, "card-detail"), nil
+		},
+	}
+}
+
+func (sekaiHandlers) CardListHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/查牌", "/查卡牌", "/卡牌列表", "/card", "/cards", "/pjsk card", "/pjsk member",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleCard, "card-list"), nil
+		},
+	}
+}
+func (sekaiHandlers) CardBoxHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/查箱", "/查框", "/卡牌一览", "/卡面一览", "/卡一览", "/box", "/card-box", "/pjsk box",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleCard, "card-box"), nil
+		},
+	}
+}
+
+// TODO
 func (sekaiHandlers) CharaAliasHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
@@ -15,6 +55,7 @@ func (sekaiHandlers) CharaAliasHandle() SekaiCommandHandler {
 				"/pjsk chara alias",
 				"/角色别名", "/查角色别名",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
@@ -24,34 +65,10 @@ func (sekaiHandlers) CharaAliasHandle() SekaiCommandHandler {
 
 			// TODO: 迁移 get_cid_by_nickname / get_nicknames_by_chara_id 逻辑
 			return nil, fmt.Errorf("TODO: 角色别名查询未实现，query=%q", args)
+
 		},
 	}
 }
-
-func (sekaiHandlers) CardHandle() SekaiCommandHandler {
-	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{
-			Commands: []string{
-				"/card", "/pjsk card", "/pjsk member",
-				"/查卡", "/查卡牌", "/卡牌列表", "/cards", "/pjsk cards",
-			},
-		},
-		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			box := false
-			if strings.Contains(args, "box") {
-				box = true
-				args = strings.TrimSpace(strings.ReplaceAll(args, "box", ""))
-			}
-
-			// TODO: 迁移 search_single_card 逻辑，命中后走 compose_card_detail_image
-			// TODO: 迁移 search_multi_cards(..., contain_leak=true) 逻辑并处理残留参数校验
-			// TODO: 迁移 compose_card_list_image 逻辑，box=true 时使用当前用户 ID 作为 qid
-			return nil, fmt.Errorf("TODO: 卡牌查询未实现，query=%q, box=%t", args, box)
-		},
-	}
-}
-
 func (sekaiHandlers) CardImgHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
@@ -59,6 +76,7 @@ func (sekaiHandlers) CardImgHandle() SekaiCommandHandler {
 				"/pjsk card img",
 				"/查卡面", "/卡面",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
@@ -80,6 +98,7 @@ func (sekaiHandlers) CardStoryHandle() SekaiCommandHandler {
 				"/pjsk card story",
 				"/卡牌剧情", "/卡面剧情", "/卡剧情", "/卡牌故事", "/卡面故事", "/卡故事",
 			},
+			Disabled: true,
 		},
 		Regions: []*sekairegion.SekaiRegion{sekairegion.GetRegionById("jp")},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
@@ -123,6 +142,7 @@ func (sekaiHandlers) BoxHandle() SekaiCommandHandler {
 				"/pjsk box",
 				"/卡牌一览", "/卡面一览", "/卡一览",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())

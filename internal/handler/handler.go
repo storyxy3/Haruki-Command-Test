@@ -38,19 +38,9 @@ func Dispatch(ctx context.Context, event Event) (interface{}, error) {
 	return matched.Handler.Handle(handlerContext)
 }
 
-func clearCmd(cmd []rune) string {
-	result := make([]rune, 0, len(cmd))
-	for _, c := range cmd {
-		if IsCommandSeg(c) {
-			continue
-		}
-		result = append(result, c)
-	}
-	return string(result)
-}
-
 // 定义统一的处理器接口
 type CommandHandler interface {
+	IsDisabled() bool                    // 是否被禁用
 	GetCommands() []string               // 获取该处理器负责的命令列表
 	GetPriority() int                    // 处理器的优先级
 	GetHelper() string                   // 帮助文本
@@ -59,10 +49,15 @@ type CommandHandler interface {
 
 // 一个基本的处理器
 type CommandHandlerBase struct {
+	Disabled   bool
 	Commands   []string
 	Priority   int
 	Helper     string
 	handleFunc func(Context) (interface{}, error)
+}
+
+func (h *CommandHandlerBase) IsDisabled() bool {
+	return h.Disabled
 }
 
 func (h *CommandHandlerBase) GetCommands() []string {
@@ -90,9 +85,7 @@ func RegisterCommandHandler(handler CommandHandler) {
 	treeMutex.Lock()
 	defer treeMutex.Unlock()
 	for _, command := range handler.GetCommands() {
-		runeCommand := []rune(command)
-		prefix := make([]rune, 0, len(runeCommand))
-		commandHandlerTree.Add(prefix, []rune(command), handler)
+		commandHandlerTree.add(0, 0, []rune(command), handler)
 	}
 }
 
@@ -101,7 +94,7 @@ func MatchCommandHandler(message string) matchedHandler {
 	treeMutex.RLock()
 	defer treeMutex.RUnlock()
 	messageRune := []rune(message)
-	matched := commandHandlerTree.Get(messageRune, 0, matchedHandler{})
+	matched := commandHandlerTree.get(messageRune, 0, matchedHandler{})
 	matched.ArgText = messageRune[matched.PrefixLength:]
 	return matched
 }
@@ -134,34 +127,35 @@ type handlerTreeNode struct {
 // 将指令处理器添加到指令解析树中
 // 将指令的每一个字符加入到树中，如果是指令分隔符，就跳过它
 // 如果指令走到了最后一个字符，而当前树节点没有处理器，将它注册到节点上，否则报一个警告
-func (t *handlerTreeNode) Add(prefix, command []rune, handler CommandHandler) {
+// depth：树的深度，每个子节点相比于父节点加一
+// index：当前遍历到的命令的位置，
+func (t *handlerTreeNode) add(depth, index int, command []rune, handler CommandHandler) {
 	// 查找下一个字符
 	var nextR rune
-	for i, r := range command {
+	for _, r := range command[index:] {
+		index++
 		if IsCommandSeg(r) {
 			continue
 		}
 		nextR = unicode.ToLower(r)
-		prefix = append(prefix, r)
-		command = command[i+1:]
 		break
 	}
 	// 如果没有下一个字符，就将handler添加到当前节点
 	if nextR == 0 {
 		handlerPriority := handler.GetPriority()
 		if t.handler != nil {
-			fmt.Fprintf(os.Stderr, "前缀 %s 已被注册，已有的优先级：%d，待注册优先级：%d\n", string(prefix), t.priority, handlerPriority)
-			// 如果待注册的handler优先级不为0，且当前handler优先级为0或大于待注册handler（优先级数值越低，优先级越高，但是0为最低优先）
+			fmt.Fprintf(os.Stderr, "指令前缀 %s 已被注册，已有的优先级：%d，待注册优先级：%d\n", string(t.command), t.priority, handlerPriority)
 			if handlerPriority > 0 && (handlerPriority < t.priority || t.priority == 0) {
-				log.Println("待注册的指令处理器优先级更高，替换已有的处理器")
+				// 如果待注册的handler优先级不为0，且当前handler优先级为0或大于待注册handler（优先级数值越低，优先级越高，但是0为最低优先）
+				log.Printf("待注册的指令处理器 %s 优先级更高，替换已有的处理器\n", string(command))
 			} else {
 				// 否则返回，不添加到树
 				return
 			}
 		}
 		t.priority = handlerPriority
-		t.command = string(prefix)
-		t.depth = len(prefix)
+		t.command = string(command)
+		t.depth = depth
 		if t.depth > maxDepth {
 			maxDepth = t.depth
 		}
@@ -176,7 +170,7 @@ func (t *handlerTreeNode) Add(prefix, command []rune, handler CommandHandler) {
 	if child == nil {
 		child = &handlerTreeNode{}
 	}
-	child.Add(prefix, command, handler)
+	child.add(depth+1, index, command, handler)
 	t.children[nextR] = child
 }
 
@@ -189,14 +183,14 @@ type matchedHandler struct {
 
 // 获取指令的处理器，可能为空
 // 将指令按字符在指令树中查找
-func (t *handlerTreeNode) Get(command []rune, prefixLength int, macthed matchedHandler) matchedHandler {
-	handlerPriority := 0
+func (t *handlerTreeNode) get(command []rune, prefixLength int, macthed matchedHandler) matchedHandler {
+	macthedPriority := 0
 	if macthed.Handler != nil {
-		handlerPriority = macthed.Handler.GetPriority()
+		macthedPriority = macthed.Handler.GetPriority()
 	}
-	// 如果传入的解析器为空或者优先级不高于当前的handler，将handler替换为当前的（如果有）
+	// 如果传入的处理器为空或者优先级不高于当前的handler，将handler替换为当前的（如果有）
 	if t.handler != nil &&
-		((t.priority > 0 && t.priority <= handlerPriority) ||
+		((t.priority > 0 && t.priority <= macthedPriority) ||
 			macthed.Handler == nil) {
 		macthed.Command = t.command
 		macthed.PrefixLength = prefixLength
@@ -227,5 +221,5 @@ func (t *handlerTreeNode) Get(command []rune, prefixLength int, macthed matchedH
 		return macthed
 	}
 	// 如果在子节点中，在子节点中查找
-	return child.Get(command, prefixLength, macthed)
+	return child.get(command, prefixLength, macthed)
 }

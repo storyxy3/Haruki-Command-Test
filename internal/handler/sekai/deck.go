@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	"errors"
 	"fmt"
 	"strconv"
@@ -20,13 +21,7 @@ func (sekaiHandlers) EventDeckHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			// TODO: 迁移 ProfileTimer("deckrec.total")
-			// TODO: 迁移 extract_event_options(ctx, args)
-			// TODO: 迁移 compose_deck_recommend_image(ctx, ctx.user_id, **options)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 活动组卡未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleDeck, "deck-event"), nil
 		},
 	}
 }
@@ -40,12 +35,7 @@ func (sekaiHandlers) ChallengeDeckHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			// TODO: 迁移 extract_challenge_options(ctx, args)
-			// TODO: 迁移 compose_deck_recommend_image(ctx, ctx.user_id, **options)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 挑战组卡未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleDeck, "deck-challenge"), nil
 		},
 	}
 }
@@ -60,12 +50,7 @@ func (sekaiHandlers) NoEventDeckHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			// TODO: 迁移 extract_no_event_options(ctx, args)
-			// TODO: 迁移 compose_deck_recommend_image(ctx, ctx.user_id, **options)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 长草组卡未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleDeck, "deck-no-event"), nil
 		},
 	}
 }
@@ -80,12 +65,7 @@ func (sekaiHandlers) BonusDeckHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			// TODO: 迁移 extract_bonus_options(ctx, args)
-			// TODO: 迁移 compose_deck_recommend_image(ctx, ctx.user_id, **options)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 加成组卡未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleDeck, "deck-bonus"), nil
 		},
 	}
 }
@@ -100,22 +80,19 @@ func (sekaiHandlers) MysekaiDeckHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			// TODO: 迁移 extract_mysekai_options(ctx, args)
-			// TODO: 迁移 compose_deck_recommend_image(ctx, ctx.user_id, **options)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 烤森组卡未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleDeck, "deck-mysekai"), nil
 		},
 	}
 }
 
+// TODO
 func (sekaiHandlers) ScoreUpHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
 				"/实效", "/倍率", "/时效", "/pjsk score up",
 			},
+			Disabled: true,
 		},
 		// TODO: refer 中这里是 CmdHandler（非 SekaiCmdHandler），后续需要确认是否应改为通用 handler
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {

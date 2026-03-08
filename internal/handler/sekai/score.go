@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	sekairegion "Haruki-Command-Parser/internal/sekai_region"
 	"fmt"
 	"strconv"
@@ -12,7 +13,7 @@ func (sekaiHandlers) ScoreControlHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
-				"/pjsk score",
+				"/分数", "/查分数", "/pjsk score", "/score control",
 				"/控分",
 			},
 		},
@@ -22,19 +23,17 @@ func (sekaiHandlers) ScoreControlHandle() SekaiCommandHandler {
 			args := strings.TrimSpace(ctx.GetArgs())
 			parts := strings.SplitN(args, " ", 2)
 			if len(parts) == 0 {
-				return nil, fmt.Errorf("使用方式:\n%s 活动pt 歌曲名(可选)", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式:\n%s 活动pt 歌曲名(可选)", ctx.originalTriggerCmd)
 			}
 			targetPT, err := strconv.Atoi(strings.TrimSpace(parts[0]))
 			if err != nil || targetPT <= 0 {
-				return nil, fmt.Errorf("使用方式:\n%s 活动pt 歌曲名(可选)", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式:\n%s 活动pt 歌曲名(可选)", ctx.originalTriggerCmd)
 			}
-			query := ""
-			if len(parts) > 1 {
-				query = strings.TrimSpace(parts[1])
-			}
-			// TODO: 迁移 search_music(query) + DEFAULT_MID 逻辑
-			// TODO: 迁移 compose_score_control_image(ctx, targetPT, mid, ctx.PrefixArg == "wl") 回图逻辑
-			return nil, fmt.Errorf("TODO: 控分未实现，target_pt=%d, query=%q, wl=%t", targetPT, query, ctx.PrefixArg == "wl")
+			// query := ""
+			// if len(parts) > 1 {
+			// 	query = strings.TrimSpace(parts[1])
+			// }
+			return makeResolvedCmd(ctx, parser.ModuleScore, "score-control"), nil
 		},
 	}
 }
@@ -45,6 +44,7 @@ func (sekaiHandlers) CustomRoomScoreControlHandle() SekaiCommandHandler {
 			Commands: []string{
 				"/pjsk custom room score", "/custom room score",
 				"/自定义房间控分", "/自定义房控分", "/自定义控分",
+				"/自定义房间分数", "/自定义分数",
 			},
 		},
 		Regions: []*sekairegion.SekaiRegion{sekairegion.GetRegionById("jp")},
@@ -52,10 +52,9 @@ func (sekaiHandlers) CustomRoomScoreControlHandle() SekaiCommandHandler {
 			args := strings.TrimSpace(ctx.GetArgs())
 			targetPT, err := strconv.Atoi(args)
 			if err != nil || targetPT <= 0 {
-				return nil, fmt.Errorf("使用方式: %s 目标PT", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式: %s 目标PT", ctx.originalTriggerCmd)
 			}
-			// TODO: 迁移 compose_custom_room_score_control_image(ctx, targetPT) 回图逻辑
-			return nil, fmt.Errorf("TODO: 自定义房间控分未实现，target_pt=%d", targetPT)
+			return makeResolvedCmd(ctx, parser.ModuleScore, "score-custom-room"), nil
 		},
 	}
 }
@@ -65,7 +64,7 @@ func (sekaiHandlers) MusicMetaHandle() SekaiCommandHandler {
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
 				"/pjsk music meta", "/music meta",
-				"/歌曲meta",
+				"/歌曲meta", "/曲目meta",
 			},
 			Priority: 1,
 		},
@@ -85,8 +84,7 @@ func (sekaiHandlers) MusicMetaHandle() SekaiCommandHandler {
 			if len(clean) > 3 {
 				return nil, fmt.Errorf("一次最多进行3首歌曲的比较")
 			}
-			// TODO: 迁移 search_music(use_emb=false) + compose_music_meta_image 回图逻辑
-			return nil, fmt.Errorf("TODO: 歌曲meta未实现，segments=%v", clean)
+			return makeResolvedCmd(ctx, parser.ModuleScore, "score-music-meta"), nil
 		},
 	}
 }
@@ -96,15 +94,13 @@ func (sekaiHandlers) MusicBoardHandle() SekaiCommandHandler {
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
 				"/pjsk music board", "/music board",
-				"/歌曲排行", "/歌曲比较", "/歌曲排名",
+				"/歌曲排行", "/歌曲比较", "/歌曲排名", "/曲目榜",
 			},
 			Priority: 1,
 		},
 		Regions: []*sekairegion.SekaiRegion{sekairegion.GetRegionById("jp")},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.ToLower(strings.TrimSpace(ctx.GetArgs()))
-			// TODO: 迁移分页/类型/排序/策略参数解析 + compose_music_board_image 回图逻辑
-			return nil, fmt.Errorf("TODO: 歌曲排行未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleScore, "score-music-board"), nil
 		},
 	}
 }

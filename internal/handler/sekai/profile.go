@@ -34,7 +34,7 @@ func (sekaiHandlers) ProfileUnbindHandle() SekaiCommandHandler {
 			args = strings.ReplaceAll(args, "u", "")
 			index, err := strconv.Atoi(args)
 			if err != nil {
-				return nil, fmt.Errorf("解除第x个账号绑定:\"%s x\"\n发送\"/绑定\"查询已绑定的账号", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("解除第x个账号绑定:\"%s x\"\n发送\"/绑定\"查询已绑定的账号", ctx.originalTriggerCmd)
 			}
 			// TODO: 迁移 remove_player_bind_id(ctx, qid, index-1)
 			return nil, fmt.Errorf("TODO: 解绑未实现，index=%d", index)
@@ -52,7 +52,7 @@ func (sekaiHandlers) ProfileSetMainHandle() SekaiCommandHandler {
 			args := strings.TrimSpace(strings.ReplaceAll(ctx.GetArgs(), "u", ""))
 			index, err := strconv.Atoi(args)
 			if err != nil {
-				return nil, fmt.Errorf("使用方式:\n设置主账号为你第x个绑定的账号: %s x", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式:\n设置主账号为你第x个绑定的账号: %s x", ctx.originalTriggerCmd)
 			}
 			// TODO: 迁移 set_player_main_bind_id(ctx, qid, index-1)
 			return nil, fmt.Errorf("TODO: 设置主账号未实现，index=%d", index)
@@ -70,7 +70,7 @@ func (sekaiHandlers) ProfileSwapBindHandle() SekaiCommandHandler {
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			parts := strings.Fields(strings.TrimSpace(ctx.GetArgs()))
 			if len(parts) != 2 {
-				return nil, fmt.Errorf("使用方式:\n%s u1 u2", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式:\n%s u1 u2", ctx.originalTriggerCmd)
 			}
 			// TODO: 迁移 swap_player_bind_id(ctx, qid, index1, index2)
 			return nil, fmt.Errorf("TODO: 交换绑定未实现，parts=%v", parts)

@@ -2,9 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
-	"errors"
-	"fmt"
-	"strings"
+	"Haruki-Command-Parser/internal/parser"
 )
 
 func (sekaiHandlers) ChallengeInfoHandle() SekaiCommandHandler {
@@ -16,9 +14,7 @@ func (sekaiHandlers) ChallengeInfoHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			// TODO: 迁移 compose_challenge_live_detail_image(ctx, ctx.user_id)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 挑战信息未实现，user_id=%s", ctx.GetUserId())
+			return makeResolvedCmd(ctx, parser.ModuleEducation, "education-challenge"), nil
 		},
 	}
 }
@@ -32,9 +28,7 @@ func (sekaiHandlers) PowerBonusInfoHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			// TODO: 迁移 compose_power_bonus_detail_image(ctx, ctx.user_id)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 加成信息未实现，user_id=%s", ctx.GetUserId())
+			return makeResolvedCmd(ctx, parser.ModuleEducation, "education-power"), nil
 		},
 	}
 }
@@ -48,53 +42,7 @@ func (sekaiHandlers) AreaItemHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-
-			helpText := fmt.Sprintf(
-				"可用参数: 团名/角色名/属性/树/花\n"+
-					"加上\"all\"可以查询所有级别材料，不加则查询你的账号的升级情况，示例：\n"+
-					"\"%s 树\" 所有树\n"+
-					"\"%s miku\" miku的道具\n"+
-					"\"%s 25h\" 25的SEKAI里的所有区域道具\n"+
-					"\"%s miku all\" miku的道具所有等级",
-				ctx.OriginalTriggerCmd,
-				ctx.OriginalTriggerCmd,
-				ctx.OriginalTriggerCmd,
-				ctx.OriginalTriggerCmd,
-			)
-
-			useAll := false
-			for _, keyword := range []string{"all", "full"} {
-				if strings.Contains(args, keyword) {
-					useAll = true
-					args = strings.TrimSpace(strings.ReplaceAll(args, keyword, ""))
-					break
-				}
-			}
-
-			tree := false
-			if strings.Contains(args, "树") {
-				tree = true
-				args = strings.TrimSpace(strings.ReplaceAll(args, "树", ""))
-			}
-
-			flower := false
-			if strings.Contains(args, "花") {
-				flower = true
-				args = strings.TrimSpace(strings.ReplaceAll(args, "花", ""))
-			}
-
-			// TODO: 迁移 extract_unit(args) / extract_card_attr(args) / get_cid_by_nickname(args)
-			// TODO: 迁移 AreaItemFilter + compose_area_item_upgrade_materials_image(ctx, qid, filter)
-			// TODO: 与 refer 一致：当 unit/attr/cid/tree/flower 全为空时返回 HELP_TEXT
-			if !tree && !flower && args == "" {
-				return nil, errors.New(helpText)
-			}
-
-			return nil, fmt.Errorf(
-				"TODO: 区域道具查询未实现，args=%q, use_all=%t, tree=%t, flower=%t",
-				args, useAll, tree, flower,
-			)
+			return makeResolvedCmd(ctx, parser.ModuleEducation, "education-area"), nil
 		},
 	}
 }
@@ -109,14 +57,7 @@ func (sekaiHandlers) BondsHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			if args != "" {
-				// TODO: 迁移 get_cid_by_nickname(args)，并在无效角色时返回“请指定其中一个角色名称”
-			}
-
-			// TODO: 迁移 compose_bonds_image(ctx, ctx.user_id, cid)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 羁绊查询未实现，query=%q, user_id=%s", args, ctx.GetUserId())
+			return makeResolvedCmd(ctx, parser.ModuleEducation, "education-bonds"), nil
 		},
 	}
 }
@@ -125,14 +66,12 @@ func (sekaiHandlers) LeaderCountHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
-				"/pjsk leader count",
+				"/队长统计", "/领队统计", "/角色领队", "/pjsk leader count",
 				"/队长次数", "/角色次数", "/队长游玩次数", "/角色游玩次数",
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			// TODO: 迁移 compose_leader_count_image(ctx, ctx.user_id)
-			// TODO: 迁移 get_image_cq(..., low_quality=true) 回复流程
-			return nil, fmt.Errorf("TODO: 队长次数查询未实现，user_id=%s", ctx.GetUserId())
+			return makeResolvedCmd(ctx, parser.ModuleEducation, "education-leader"), nil
 		},
 	}
 }

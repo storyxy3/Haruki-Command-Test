@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,21 +16,19 @@ func (sekaiHandlers) GachaHandle() SekaiCommandHandler {
 			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			// TODO: 迁移 parse_search_gacha_args(ctx, args) 单卡池分支
-			// TODO: 迁移 parse_search_multiple_gacha_args(ctx, args) 多卡池分支
-			// TODO: 迁移 compose_gacha_detail_image / compose_gacha_list_image 回图逻辑
-			return nil, fmt.Errorf("TODO: 卡池查询未实现，query=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleGacha, "gacha"), nil
 		},
 	}
 }
 
+// TODO: 抽卡记录有问题，还是不要了吧
 func (sekaiHandlers) GachaRecordHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
 				"/pjsk gacha record", "/抽卡记录", "/抽卡历史",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())

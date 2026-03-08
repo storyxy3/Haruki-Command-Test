@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	sekairegion "Haruki-Command-Parser/internal/sekai_region"
 	"fmt"
 	"log"
@@ -13,10 +14,11 @@ import (
 
 type SekaiHandlerContext struct {
 	handler.HandlerContext
-	Region             *sekairegion.SekaiRegion // 区服
-	OriginalTriggerCmd string                   // 原始触发命令，未去除区服前缀
-	PrefixArg          string                   // 额外前缀
-	UidArg             string                   // UID参数 /u / uid / @
+	region             *sekairegion.SekaiRegion // 区服
+	originalTriggerCmd string                   // 原始触发命令，未去除区服前缀
+	prefixArg          string                   // 额外前缀
+	uidArg             string                   // UID参数 /u / uid / @
+	flags              map[string]bool          // -verbose, -preview, -help 等开关
 }
 
 type SekaiCommandHandler struct {
@@ -24,6 +26,19 @@ type SekaiCommandHandler struct {
 	Regions    []*sekairegion.SekaiRegion
 	PrefixArgs []string
 	handleFunc func(SekaiHandlerContext) (interface{}, error)
+}
+
+func (s *SekaiHandlerContext) Region() *sekairegion.SekaiRegion {
+	return s.region
+}
+func (s *SekaiHandlerContext) PrefixArg() string {
+	return s.prefixArg
+}
+func (s *SekaiHandlerContext) Flags() map[string]bool {
+	return s.flags
+}
+func (s *SekaiHandlerContext) SetArgs(args string) {
+	s.ArgText = args
 }
 
 func (skh *SekaiCommandHandler) Handle(ctx handler.Context) (interface{}, error) {
@@ -34,6 +49,7 @@ func (skh *SekaiCommandHandler) Handle(ctx handler.Context) (interface{}, error)
 		}
 		return nil, fmt.Errorf("Sekai 命令处理器 %s 没有处理方法", cmdName)
 	}
+
 	// 处理指令区服前缀
 	var cmdRegion *sekairegion.SekaiRegion
 	originalTriggerCmd := ctx.GetTriggerCmd()
@@ -64,6 +80,32 @@ func (skh *SekaiCommandHandler) Handle(ctx handler.Context) (interface{}, error)
 	}
 	// TODO: 处理账号参数等
 	args := ctx.GetArgs()
+	uidArg := ""
+
+	// 提取通用 flags 和 region flag (不需要 nicknames 也能提取这些)
+	ext := parser.NewExtractor(nil)
+	flags := make(map[string]bool)
+
+	regRes := ext.ExtractRegion(args)
+	if regRes.Value != "" {
+		if r := sekairegion.GetRegionById(regRes.Value); r != nil {
+			cmdRegion = r
+		}
+	}
+	args = regRes.Remaining
+
+	verbRes := ext.ExtractVerbose(args)
+	flags["is_verbose"] = verbRes.Value
+	args = verbRes.Remaining
+
+	preRes := ext.ExtractPreview(args)
+	flags["is_preview"] = preRes.Value
+	args = preRes.Remaining
+
+	helpRes := ext.ExtractHelp(args)
+	flags["is_help"] = helpRes.Value
+	args = helpRes.Remaining
+
 	skCtx := SekaiHandlerContext{
 		HandlerContext: handler.HandlerContext{
 			Context:     ctx,
@@ -77,15 +119,12 @@ func (skh *SekaiCommandHandler) Handle(ctx handler.Context) (interface{}, error)
 			SenderName:  ctx.GetSenderName(),
 			GroupId:     ctx.GetGroupId(),
 		},
-		Region:             cmdRegion,
-		OriginalTriggerCmd: originalTriggerCmd,
-		PrefixArg:          prefixArg,
-		UidArg:             "",
+		region:             cmdRegion,
+		originalTriggerCmd: originalTriggerCmd,
+		prefixArg:          prefixArg,
+		uidArg:             uidArg, //
+		flags:              flags,
 	}
-	skCtx.Region = cmdRegion
-	skCtx.OriginalTriggerCmd = originalTriggerCmd
-	skCtx.PrefixArg = prefixArg
-	skCtx.ArgText = args
 	return skh.handleFunc(skCtx)
 }
 
@@ -119,7 +158,7 @@ func RegisterSekaiCommandHandler() {
 			for _, prefix := range skHandler.PrefixArgs {
 				for _, region := range skHandler.Regions {
 					for _, cmd := range skHandler.Commands {
-						if strings.HasPrefix(cmd,  fmt.Sprintf("/%s%s", region.Id(), prefix)){
+						if strings.HasPrefix(cmd, fmt.Sprintf("/%s%s", region.Id(), prefix)) {
 							fmt.Fprintf(os.Stderr, "指令 %s 本身包含了区服前缀！", cmd)
 						}
 						allRegionCommands[cmd] = true

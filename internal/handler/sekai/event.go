@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	sekairegion "Haruki-Command-Parser/internal/sekai_region"
 	"fmt"
 	"strings"
@@ -11,37 +12,34 @@ var multiEventCmds = []string{"/pjsk events", "/pjsk_events", "/events", "/活�
 var singleEventCmds = []string{"/pjsk event", "/pjsk_event", "/event", "/活动", "/查活动"}
 
 func (sekaiHandlers) EventHandle() SekaiCommandHandler {
-	commands := make([]string, 0, len(singleEventCmds)+len(multiEventCmds))
-	commands = append(commands, singleEventCmds...)
-	commands = append(commands, multiEventCmds...)
+	// commands := make([]string, 0, len(singleEventCmds)+len(multiEventCmds))
+	// commands = append(commands, singleEventCmds...)
+	// commands = append(commands, multiEventCmds...)
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
-			Commands: commands,
+			Commands: []string{
+				"/pjsk events", "/pjsk_events", "/events", "/活动列表", "/活动一览",
+			},
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			trigger := ctx.GetTriggerCmd()
-
-			// TODO: 迁移 query_single/query_multi 的完整筛选和搜索逻辑
-			// TODO: 参数为空时根据触发命令区分单活动/活动列表
-			// TODO: 优先单活动，失败后回退活动列表，并合并错误提示
-			if args == "" {
-				for _, cmd := range multiEventCmds {
-					if trigger == cmd {
-						return nil, fmt.Errorf("TODO: 活动列表查询未实现，trigger=%q", trigger)
-					}
-				}
-				for _, cmd := range singleEventCmds {
-					if trigger == cmd {
-						return nil, fmt.Errorf("TODO: 单活动查询未实现，trigger=%q", trigger)
-					}
-				}
-			}
-			return nil, fmt.Errorf("TODO: 活动查询未实现，trigger=%q, query=%q", trigger, args)
+			return makeResolvedCmd(ctx, parser.ModuleEvent, "event-list"), nil
+		},
+	}
+}
+func (sekaiHandlers) EventDetailHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/活动", "/查活动", "/event",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleEvent, "event-detail"), nil
 		},
 	}
 }
 
+// TODO
 func (sekaiHandlers) EventStoryHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
@@ -49,6 +47,7 @@ func (sekaiHandlers) EventStoryHandle() SekaiCommandHandler {
 				"/pjsk event story", "/pjsk_event_story",
 				"/活动剧情", "/活动故事", "/活动总结",
 			},
+			Disabled: true,
 		},
 		Regions: []*sekairegion.SekaiRegion{sekairegion.GetRegionById("jp")},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
@@ -87,6 +86,7 @@ func (sekaiHandlers) SendBoostHandle() SekaiCommandHandler {
 				"/pjsk send boost", "/pjsk_send_boost", "/pjsk grant boost", "/pjsk_grant_boost",
 				"/自动送火", "/送火",
 			},
+			Disabled: true,
 		},
 		Regions: []*sekairegion.SekaiRegion{sekairegion.GetRegionById("jp")},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
@@ -103,6 +103,7 @@ func (sekaiHandlers) EventRecordHandle() SekaiCommandHandler {
 				"/pjsk event record", "/pjsk_event_record",
 				"/活动记录", "/冲榜记录",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			// TODO: 迁移 compose_event_record_image(ctx, ctx.user_id) 回图逻辑

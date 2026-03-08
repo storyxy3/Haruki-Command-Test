@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,40 +11,67 @@ import (
 var musicListCmds = []string{"/pjsk song list", "/pjsk music list", "/歌曲列表", "/歌曲一览"}
 var musicConstantCmds = []string{"/pjsk music constant", "/难度排行", "/定数表", "/歌曲定数"}
 
-func (sekaiHandlers) AliasSetHandle() SekaiCommandHandler {
+func (sekaiHandlers) MusicDetailHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk alias add", "/pjskalias add",
-			"/添加歌曲别名", "/歌曲别名添加",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/查曲", "/查歌", "/查乐", "/查音乐", "/查询乐曲", "/查歌曲", "/歌曲", "/乐曲", "/song", "/music",
+			},
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			// TODO: 迁移 search_music + MusicAliasDB.add + 日志与反馈逻辑
-			return nil, fmt.Errorf("TODO: 添加歌曲别名未实现，args=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleMusic, "music-detail"), nil
+		},
+	}
+}
+func (sekaiHandlers) MusicListHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/歌曲列表", "/歌曲一览", "/乐曲列表", "/乐曲一览", "/难度排行", "/定数表", "/歌曲定数", "/查乐曲", "/music-list",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleMusic, "music-list"), nil
+		},
+	}
+}
+func (sekaiHandlers) MusicRewardsHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/曲目奖励", "/歌曲奖励", "/music rewards", "/music-rewards", "/pjsk music rewards",
+				"/打歌奖励", "/歌曲挖矿", "/打歌挖矿",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleMusic, "music-rewards"), nil
 		},
 	}
 }
 
-func (sekaiHandlers) AliasHandle() SekaiCommandHandler {
+func (sekaiHandlers) MusicProgressHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk alias", "/music alias",
-			"/歌曲别名", "/查歌曲别名",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/打歌进度", "/歌曲进度", "/打歌信息", "/pjsk进度", "/progress", "/music-progress",
+			},
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			// TODO: 迁移 search_music + MusicAliasDB.get_aliases 逻辑
-			return nil, fmt.Errorf("TODO: 查看歌曲别名未实现，args=%q", args)
+			return makeResolvedCmd(ctx, parser.ModuleMusic, "music-progress"), nil
 		},
 	}
 }
 
+// TODO
 func (sekaiHandlers) AliasDelHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk alias del", "/pjskalias del",
-			"/删除歌曲别名", "/歌曲别名删除",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk alias del", "/pjskalias del",
+				"/删除歌曲别名", "/歌曲别名删除",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			// TODO: 迁移 MusicAliasDB.remove + 日志与批量反馈逻辑
@@ -51,13 +79,15 @@ func (sekaiHandlers) AliasDelHandle() SekaiCommandHandler {
 		},
 	}
 }
-
 func (sekaiHandlers) SongHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk song", "/pjsk music", "/song", "/music",
-			"/查曲", "/查歌", "/歌曲", "/查歌曲",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk song", "/pjsk music", "/song", "/music",
+				"/查曲", "/查歌", "/歌曲", "/查歌曲",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			query := strings.TrimSpace(ctx.GetArgs())
 			if query == "" {
@@ -71,10 +101,13 @@ func (sekaiHandlers) SongHandle() SekaiCommandHandler {
 
 func (sekaiHandlers) NoteNumHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk note num", "/pjsk note count",
-			"/物量", "/查物量",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk note num", "/pjsk note count",
+				"/物量", "/查物量",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			noteCount, err := strconv.Atoi(args)
@@ -87,26 +120,15 @@ func (sekaiHandlers) NoteNumHandle() SekaiCommandHandler {
 	}
 }
 
-func (sekaiHandlers) MusicListHandle() SekaiCommandHandler {
-	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{
-			Commands: musicListCmds,
-		},
-		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			// TODO: 迁移 diff/lv/leak/id/clear/fc/ap/定数 参数解析与 compose_music_list_image 回图逻辑
-			// TODO: trigger 命中 musicConstantCmds 时 show_constant=true
-			return nil, fmt.Errorf("TODO: 歌曲列表未实现，trigger=%q, args=%q", ctx.GetTriggerCmd(), args)
-		},
-	}
-}
-
 func (sekaiHandlers) PlayProgressHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk progress",
-			"/pjsk进度", "/打歌进度", "/歌曲进度", "/打歌信息",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk progress",
+				"/pjsk进度", "/打歌进度", "/歌曲进度", "/打歌信息",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			// TODO: 迁移 extract_diff + compose_play_progress_image 回图逻辑
@@ -117,9 +139,12 @@ func (sekaiHandlers) PlayProgressHandle() SekaiCommandHandler {
 
 func (sekaiHandlers) SyncMusicAliasHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/sync music alias", "/sma", "/同步歌曲别名",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/sync music alias", "/sma", "/同步歌曲别名",
+			},
+			Disabled: true,
+		},
 		// TODO: refer 中这里是 CmdHandler（非 SekaiCmdHandler），后续确认是否迁到通用 handler
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			// TODO: 迁移 superuser 校验 + block + sync_music_alias 流程
@@ -128,24 +153,14 @@ func (sekaiHandlers) SyncMusicAliasHandle() SekaiCommandHandler {
 	}
 }
 
-func (sekaiHandlers) MusicRewardsHandle() SekaiCommandHandler {
-	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk music rewards",
-			"/歌曲奖励", "/打歌奖励", "/歌曲挖矿", "/打歌挖矿",
-		}},
-		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			// TODO: 迁移 compose_music_rewards_image(ctx, ctx.user_id) 回图逻辑
-			return nil, fmt.Errorf("TODO: 歌曲奖励未实现，user_id=%s", ctx.GetUserId())
-		},
-	}
-}
-
 func (sekaiHandlers) BPMHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk bpm", "/查bpm", "/查BPM",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk bpm", "/查bpm", "/查BPM",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			query := strings.TrimSpace(ctx.GetArgs())
 			// TODO: 迁移 search_music + get_chart_bpm + 封面与 BPM 文本拼接逻辑
@@ -156,14 +171,50 @@ func (sekaiHandlers) BPMHandle() SekaiCommandHandler {
 
 func (sekaiHandlers) MusicCoverHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{Commands: []string{
-			"/pjsk music cover",
-			"/查曲绘", "/曲绘",
-		}},
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk music cover",
+				"/查曲绘", "/曲绘",
+			},
+			Disabled: true,
+		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			query := strings.TrimSpace(ctx.GetArgs())
 			// TODO: 迁移 search_music + 读取曲绘资源并回复逻辑
 			return nil, fmt.Errorf("TODO: 曲绘查询未实现，query=%q", query)
+		},
+	}
+}
+
+func (sekaiHandlers) AliasSetHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk alias add", "/pjskalias add",
+				"/添加歌曲别名", "/歌曲别名添加",
+			},
+			Disabled: true,
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			args := strings.TrimSpace(ctx.GetArgs())
+			// TODO: 迁移 search_music + MusicAliasDB.add + 日志与反馈逻辑
+			return nil, fmt.Errorf("TODO: 添加歌曲别名未实现，args=%q", args)
+		},
+	}
+}
+func (sekaiHandlers) AliasHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk alias", "/music alias",
+				"/歌曲别名", "/查歌曲别名",
+			},
+			Disabled: true,
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			args := strings.TrimSpace(ctx.GetArgs())
+			// TODO: 迁移 search_music + MusicAliasDB.get_aliases 逻辑
+			return nil, fmt.Errorf("TODO: 查看歌曲别名未实现，args=%q", args)
 		},
 	}
 }

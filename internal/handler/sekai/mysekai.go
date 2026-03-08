@@ -2,46 +2,46 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-func (sekaiHandlers) MysekaiResHandle() SekaiCommandHandler {
+func (sekaiHandlers) MysekaiResourceHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
-				"/pjsk mysekai res", "/msr", "/msmap", "/msa",
-				"/mysekai 资源",
+				"/mysekai-resource", "/mysekai资源", "/烤森资源", "/msmap", "/msa",
 			},
-			Priority: 1,
 		},
-		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			showHarvested := strings.Contains(args, "all")
-			checkTime := !strings.Contains(args, "force")
-			// TODO: 迁移 bd_msr_sub 群限制校验 + compose_mysekai_res_image 回图逻辑
-			return nil, fmt.Errorf("TODO: mysekai资源查询未实现，show_harvested=%t, check_time=%t", showHarvested, checkTime)
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-resource"), nil
 		},
 	}
 }
 
-func (sekaiHandlers) MysekaiBlueprintHandle() SekaiCommandHandler {
+func (sekaiHandlers) MysekaiTalkListHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
-				"/pjsk mysekai blueprint", "/mysekai blueprint",
-				"/msb", "/mysekai 蓝图",
+				"/mysekai-talk-list", "/mysekai对话列表", "/烤森对话列表",
 			},
 		},
-		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			showID := strings.Contains(args, "id")
-			showAllTalks := strings.Contains(args, "all")
-			// TODO: 迁移 unit/cid 解析 + compose_mysekai_fixture_list_image/compose_mysekai_talk_list_image 回图逻辑
-			return nil, fmt.Errorf("TODO: mysekai蓝图查询未实现，args=%q, show_id=%t, show_all_talks=%t", args, showID, showAllTalks)
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-talk-list"), nil
+		},
+	}
+}
+func (sekaiHandlers) MysekaiFixtureListHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/mysekai-fixture-list", "/mysekai家具列表", "/烤森家具列表", "/msf",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-fixture-list"), nil
 		},
 	}
 }
@@ -54,26 +54,57 @@ func (sekaiHandlers) MysekaiFurnitureHandle() SekaiCommandHandler {
 				"/msf", "/mysekai 家具", "/家具列表",
 			},
 		},
-		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			parts := strings.Fields(args)
-			fids := make([]int, 0, len(parts))
-			allInts := len(parts) > 0
-			for _, p := range parts {
-				v, err := strconv.Atoi(p)
-				if err != nil {
-					allInts = false
-					break
-				}
-				fids = append(fids, v)
-			}
-			// TODO: 迁移按 fids 查询详情分支 + 列表分支（含 unit/cid/all）逻辑
-			return nil, fmt.Errorf("TODO: mysekai家具查询未实现，all_ints=%t, fids=%v, args=%q", allInts, fids, args)
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-fixture-detail"), nil
 		},
 	}
 }
 
+func (sekaiHandlers) MysekaiDoorUpgradeHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/mysekai-door-upgrade", "/mysekai大门升级", "/烤森大门升级", "/msg", "/msgate",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-door-upgrade"), nil
+		},
+	}
+}
+func (sekaiHandlers) MysekaiMusicRecordHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/mysekai-music-record", "/mysekai唱片", "/烤森唱片", "/msm", "/mss",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleMysekai, "mysekai-music-record"), nil
+		},
+	}
+}
+
+// TODO
+func (sekaiHandlers) MysekaiBlueprintHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
+				"/pjsk mysekai blueprint", "/mysekai blueprint",
+				"/msb", "/mysekai 蓝图",
+			},
+			Disabled: true,
+		},
+		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			args := strings.TrimSpace(ctx.GetArgs())
+			showID := strings.Contains(args, "id")
+			showAllTalks := strings.Contains(args, "all")
+			// TODO: 迁移 unit/cid 解析 + compose_mysekai_fixture_list_image/compose_mysekai_talk_list_image 回图逻辑
+			return nil, fmt.Errorf("TODO: mysekai蓝图查询未实现，args=%q, show_id=%t, show_all_talks=%t", args, showID, showAllTalks)
+		},
+	}
+}
 func (sekaiHandlers) MysekaiPhotoHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
@@ -81,6 +112,7 @@ func (sekaiHandlers) MysekaiPhotoHandle() SekaiCommandHandler {
 				"/pjsk mysekai photo", "/pjsk mysekai picture",
 				"/msp", "/mysekai 照片",
 			},
+			Disabled: true,
 		},
 		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
@@ -103,45 +135,12 @@ func (sekaiHandlers) CheckMysekaiDataHandle() SekaiCommandHandler {
 				"/pjsk烤森抓包数据", "/pjsk烤森抓包", "/烤森抓包", "/烤森抓包数据",
 				"/msd",
 			},
+			Disabled: true,
 		},
 		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			// TODO: 迁移 at用户解析 + get_player_bind_id + get_mysekai_upload_time + 文本组装逻辑
 			return nil, fmt.Errorf("TODO: 烤森抓包状态未实现，user_id=%s", ctx.GetUserId())
-		},
-	}
-}
-
-func (sekaiHandlers) MysekaiGateHandle() SekaiCommandHandler {
-	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{
-			Commands: []string{
-				"/pjsk mysekai gate", "/msg", "/msgate",
-			},
-		},
-		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
-		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			qidAll := strings.Contains(args, "all")
-			// TODO: 迁移 unit->gate_id 解析 + compose_mysekai_door_upgrade_image 回图逻辑
-			return nil, fmt.Errorf("TODO: 烤森门升级查询未实现，args=%q, all=%t", args, qidAll)
-		},
-	}
-}
-
-func (sekaiHandlers) MysekaiMusicRecordHandle() SekaiCommandHandler {
-	return SekaiCommandHandler{
-		CommandHandlerBase: handler.CommandHandlerBase{
-			Commands: []string{
-				"/pjsk mysekai musicrecord", "/msm", "/mss", "/mssong",
-			},
-		},
-		// TODO: refer 中限制 regions=get_regions(RegionAttributes.MYSEKAI)
-		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
-			args := strings.TrimSpace(ctx.GetArgs())
-			showID := strings.Contains(args, "id")
-			// TODO: 迁移群限制校验 + compose_mysekai_musicrecord_image 回图逻辑
-			return nil, fmt.Errorf("TODO: 烤森唱片数据查询未实现，show_id=%t", showID)
 		},
 	}
 }
@@ -152,6 +151,7 @@ func (sekaiHandlers) MSRChangeBindHandle() SekaiCommandHandler {
 			Commands: []string{
 				"/msr换绑",
 			},
+			Disabled: true,
 		},
 		// TODO: refer 中限制 regions=get_regions(RegionAttributes.BD_MYSEKAI)
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {

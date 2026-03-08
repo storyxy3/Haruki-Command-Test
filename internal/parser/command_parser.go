@@ -1,4 +1,4 @@
-﻿package parser
+package parser
 
 import (
 	"fmt"
@@ -137,3 +137,5 @@ func (p *CommandParser) Parse(args string) (*EventCommand, error) {
 
 	return nil, fmt.Errorf("无法识别的指令格式: %s", args)
 }
+
+

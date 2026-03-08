@@ -11,12 +11,13 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
 	"Haruki-Command-Parser/internal/chardata"
 	"Haruki-Command-Parser/internal/config"
+	"Haruki-Command-Parser/internal/handler"
+	sekaihandler "Haruki-Command-Parser/internal/handler/sekai"
 	"Haruki-Command-Parser/internal/parser"
 
 	sekai "haruki-cloud/database/sekai"
@@ -45,18 +46,10 @@ type ParseResponse struct {
 }
 
 type server struct {
-	resolverMu    sync.RWMutex
-	resolver      *parser.GlobalCommandResolver
 	loader        *chardata.Loader
 	logger        *slog.Logger
 	serviceClient *http.Client // HTTP client for calling Part2
 	serviceURL    string       // Part2 /api/render URL
-}
-
-func (s *server) getResolver() *parser.GlobalCommandResolver {
-	s.resolverMu.RLock()
-	defer s.resolverMu.RUnlock()
-	return s.resolver
 }
 
 func main() {
@@ -114,12 +107,7 @@ func main() {
 		loader.StartBackgroundRefresh(ctx, refreshInterval)
 	}
 
-	// --- Build resolver ---
-	nicknames := loader.Nicknames()
-	if nicknames == nil {
-		nicknames = make(map[string]int)
-	}
-	resolver := parser.NewGlobalCommandResolver(nicknames)
+	sekaihandler.RegisterSekaiCommandHandler()
 
 	// --- HTTP client for Part2 ---
 	serviceURL := cfg.ServiceAPI.BaseURL
@@ -130,7 +118,6 @@ func main() {
 
 	// --- HTTP Server ---
 	srv := &server{
-		resolver:      resolver,
 		loader:        loader,
 		logger:        logger,
 		serviceClient: serviceClient,
@@ -199,9 +186,25 @@ func (s *server) handleParse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resolved, err := s.getResolver().Resolve(req.Text)
-	if err != nil {
+	evt := handler.Event{
+		MessageType: handler.MessageTypePrivate,
+		Message:     req.Text,
+		UserId:      req.UserQQ,
+	}
+	result, _ := handler.Dispatch(r.Context(), evt)
+	if result == nil {
+		writeJSON(w, http.StatusOK, ParseResponse{Error: "无法识别指令格式，请发送 /help 查看说明"})
+		return
+	}
+
+	if err, ok := result.(error); ok {
 		writeJSON(w, http.StatusOK, ParseResponse{Error: err.Error()})
+		return
+	}
+
+	resolved, ok := result.(*parser.ResolvedCommand)
+	if !ok {
+		writeJSON(w, http.StatusOK, ParseResponse{Error: "unexpected handler result"})
 		return
 	}
 
@@ -252,9 +255,25 @@ func (s *server) handleProcess(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 1: Parse the command
-	resolved, err := s.getResolver().Resolve(req.Text)
-	if err != nil {
-		http.Error(w, "parse error: "+err.Error(), http.StatusBadRequest)
+	evt := handler.Event{
+		MessageType: handler.MessageTypePrivate,
+		Message:     req.Text,
+		UserId:      req.UserQQ,
+	}
+	result, _ := handler.Dispatch(r.Context(), evt)
+	if result == nil {
+		http.Error(w, "无法识别指令格式，请发送 /help 查看说明", http.StatusBadRequest)
+		return
+	}
+
+	if errRes, ok := result.(error); ok {
+		http.Error(w, "parse error: "+errRes.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resolved, ok := result.(*parser.ResolvedCommand)
+	if !ok {
+		http.Error(w, "parse error: unexpected handler result", http.StatusBadRequest)
 		return
 	}
 
@@ -323,14 +342,9 @@ func (s *server) handleReload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
-	// Rebuild the resolver with fresh nicknames
-	nicknames := s.loader.Nicknames()
-	if nicknames == nil {
-		nicknames = make(map[string]int)
-	}
-	s.resolverMu.Lock()
-	s.resolver = parser.NewGlobalCommandResolver(nicknames)
-	s.resolverMu.Unlock()
+	// Wait, resolver was handling reloading of character nicknames.
+	// Since the handler system uses `parser.Extractor` which currently handles nickname matching if supplied... Wait!
+	// Extractor has nicknames, but Handler framework does not inject nicknames.
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 

@@ -2,6 +2,7 @@ package sekai
 
 import (
 	"Haruki-Command-Parser/internal/handler"
+	"Haruki-Command-Parser/internal/parser"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,15 +12,30 @@ func (sekaiHandlers) StampHandle() SekaiCommandHandler {
 	return SekaiCommandHandler{
 		CommandHandlerBase: handler.CommandHandlerBase{
 			Commands: []string{
+				"/贴纸", "/查贴纸", "/pjsk贴纸", "/pjsk stamp", "/pjsk bq", "/stamp",
+			},
+		},
+		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
+			return makeResolvedCmd(ctx, parser.ModuleStamp, "stamp-list"), nil
+		},
+	}
+}
+
+// TODO
+func (sekaiHandlers) StampMakeHandle() SekaiCommandHandler {
+	return SekaiCommandHandler{
+		CommandHandlerBase: handler.CommandHandlerBase{
+			Commands: []string{
 				"/pjsk stamp", "/pjsk bq",
 				"/pjsk表情", "/pjsk表情制作",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			if args == "" {
 				return nil, fmt.Errorf("使用方式\n查询某个角色: %s miku\n根据id查询: %s 123\n查询多个: %s 123 456\n制作表情: %s 123 文本",
-					ctx.OriginalTriggerCmd, ctx.OriginalTriggerCmd, ctx.OriginalTriggerCmd, ctx.OriginalTriggerCmd)
+					ctx.originalTriggerCmd, ctx.originalTriggerCmd, ctx.originalTriggerCmd, ctx.originalTriggerCmd)
 			}
 			format := "gif"
 			if strings.Contains(args, "png") {
@@ -40,6 +56,7 @@ func (sekaiHandlers) RandStampHandle() SekaiCommandHandler {
 				"/pjsk rand stamp", "/pjsk rand bq",
 				"/pjsk随机表情", "/pjsk随机表情制作", "/随机表情",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
@@ -61,12 +78,13 @@ func (sekaiHandlers) StampRefreshHandle() SekaiCommandHandler {
 				"/pjsk stamp refresh", "/pjsk refresh stamp",
 				"/pjsk表情刷新", "/pjsk刷新表情", "/pjsk刷新表情底图", "/pjsk表情刷新底图",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			sid, err := strconv.Atoi(args)
 			if err != nil || sid < 0 {
-				return nil, fmt.Errorf("使用方式: %s 123", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式: %s 123", ctx.originalTriggerCmd)
 			}
 			// TODO: 迁移 block_region + 删除旧cutout + ensure_stamp_maker_base_image + gif 回传逻辑
 			return nil, fmt.Errorf("TODO: 刷新表情底图未实现，sid=%d", sid)
@@ -81,6 +99,7 @@ func (sekaiHandlers) StampRefreshBatchHandle() SekaiCommandHandler {
 				"/pjsk stamp refresh batch",
 				"/pjsk表情刷新批量",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			// TODO: 迁移 block_region + superuser 校验 + 批量刷新逻辑
@@ -96,6 +115,7 @@ func (sekaiHandlers) StampBaseHandle() SekaiCommandHandler {
 				"/pjsk stamp base",
 				"/pjsk表情底图",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
@@ -106,7 +126,7 @@ func (sekaiHandlers) StampBaseHandle() SekaiCommandHandler {
 			}
 			sid, err := strconv.Atoi(args)
 			if err != nil || sid < 0 {
-				return nil, fmt.Errorf("使用方式: %s 123", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式: %s 123", ctx.originalTriggerCmd)
 			}
 			// TODO: 迁移 ensure_stamp_maker_base_image + gif/png 回传逻辑
 			return nil, fmt.Errorf("TODO: 查看表情底图未实现，sid=%d, gif=%t", sid, gif)
@@ -121,18 +141,19 @@ func (sekaiHandlers) StampBaseDeleteHandle() SekaiCommandHandler {
 				"/pjsk remove stamp base", "/pjsk del stamp base",
 				"/pjsk删除表情底图",
 			},
+			Disabled: true,
 		},
 		handleFunc: func(ctx SekaiHandlerContext) (interface{}, error) {
 			args := strings.TrimSpace(ctx.GetArgs())
 			parts := strings.Fields(args)
 			if len(parts) == 0 {
-				return nil, fmt.Errorf("使用方式: %s 123 456", ctx.OriginalTriggerCmd)
+				return nil, fmt.Errorf("使用方式: %s 123 456", ctx.originalTriggerCmd)
 			}
 			sids := make([]int, 0, len(parts))
 			for _, p := range parts {
 				sid, err := strconv.Atoi(p)
 				if err != nil {
-					return nil, fmt.Errorf("使用方式: %s 123 456", ctx.OriginalTriggerCmd)
+					return nil, fmt.Errorf("使用方式: %s 123 456", ctx.originalTriggerCmd)
 				}
 				sids = append(sids, sid)
 			}
