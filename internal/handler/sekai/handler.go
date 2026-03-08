@@ -1,10 +1,11 @@
 package sekai
 
 import (
-	"Haruki-Command-Parser/cmd/handler"
+	"Haruki-Command-Parser/internal/handler"
 	sekairegion "Haruki-Command-Parser/internal/sekai_region"
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"slices"
 	"strings"
@@ -118,6 +119,9 @@ func RegisterSekaiCommandHandler() {
 			for _, prefix := range skHandler.PrefixArgs {
 				for _, region := range skHandler.Regions {
 					for _, cmd := range skHandler.Commands {
+						if strings.HasPrefix(cmd,  fmt.Sprintf("/%s%s", region.Id(), prefix)){
+							fmt.Fprintf(os.Stderr, "指令 %s 本身包含了区服前缀！", cmd)
+						}
 						allRegionCommands[cmd] = true
 						allRegionCommands[strings.Replace(cmd, "/", fmt.Sprintf("/%s", prefix), 1)] = true
 						allRegionCommands[strings.Replace(cmd, "/", fmt.Sprintf("/%s%s", region.Id(), prefix), 1)] = true

@@ -1,7 +1,7 @@
 package sekai
 
 import (
-	"Haruki-Command-Parser/cmd/handler"
+	"Haruki-Command-Parser/internal/handler"
 	"context"
 	"log"
 	"testing"
